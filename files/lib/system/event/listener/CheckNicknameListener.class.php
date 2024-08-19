@@ -4,7 +4,6 @@ namespace wcf\system\event\listener;
 
 use GuzzleHttp\Psr7\Request;
 use Throwable;
-use wcf\system\exception\UserInputException;
 use wcf\system\io\HttpFactory;
 use wcf\util\JSON;
 
@@ -16,7 +15,7 @@ final class CheckNicknameListener implements IParameterizedEventListener
     public function execute($eventObj, $className, $eventName, array &$parameters)
     {
         $client = HttpFactory::makeClient();
-        $request = new Request('GET', 'https://localhost/api/check_nickname.php' . \http_build_query([
+        $request = new Request('GET', 'https://localhost/api/check_nickname.php?' . \http_build_query([
             'nickname' => $eventObj->username,
         ], '', '&'));
 
@@ -28,8 +27,8 @@ final class CheckNicknameListener implements IParameterizedEventListener
             // do nothing
         }
 
-        if (!isset($data['available']) || $data['available']) {
-            throw new UserInputException('nickname', 'notAvailable');
+        if (!isset($data['available']) || !$data['available']) {
+            $eventObj->errorType['username'] = 'notAvailable';
         }
     }
 }
